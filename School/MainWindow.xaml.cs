@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.ComponentModel;
+using System.Data;
+using System.Data.Objects;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -73,9 +75,14 @@ namespace School {
                 Student NyStudent = new Student();
                 NyStudent.FirstName = Tilfoej.firstName.Text;
                 NyStudent.LastName = Tilfoej.lastName.Text;
-                NyStudent.DateOfBirth = DateTime.Parse(Tilfoej.dateOfBirth.Text);
-                teacher.Students.Add(NyStudent);
-                return true;
+                try {
+                    NyStudent.DateOfBirth = DateTime.Parse(Tilfoej.dateOfBirth.Text);
+                    teacher.Students.Add(NyStudent);
+                    return true;
+                }
+                catch {
+                    return false;
+                }
             }
             return false;
         }
@@ -124,7 +131,24 @@ namespace School {
 
         // Save changes back to the database and make them permanente
         private void saveChanges_Click(object sender, RoutedEventArgs e) {
-
+            try {
+                schoolContext.SaveChanges();
+                saveChanges.IsEnabled = false;
+            }
+            catch (OptimisticConcurrencyException) {
+                this.schoolContext.Refresh(RefreshMode.StoreWins, schoolContext.Students);
+                this.schoolContext.SaveChanges();
+            }
+            catch (UpdateException uEx) {
+                // If some sort of database exception has occurred, then display the reason for the exception and rollback
+                MessageBox.Show(uEx.InnerException.Message, "Error saving changes");
+                this.schoolContext.Refresh(RefreshMode.StoreWins, schoolContext.Students);
+            }
+            catch (Exception ex) {
+                // If some other exception occurs, report it to the user
+                MessageBox.Show(ex.Message, "Error saving changes");
+                this.schoolContext.Refresh(RefreshMode.ClientWins, schoolContext.Students);
+            }
         }
 
         #endregion
