@@ -122,7 +122,7 @@ namespace School {
                 saveChanges.IsEnabled = true;
         }
 
-        // Save changes back to the database and make them permanent
+        // Save changes back to the database and make them permanente
         private void saveChanges_Click(object sender, RoutedEventArgs e) {
 
         }
